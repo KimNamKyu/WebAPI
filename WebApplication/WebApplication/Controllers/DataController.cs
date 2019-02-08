@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using MySql.Data.MySqlClient;
+using WebApplication.Models;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -18,20 +19,27 @@ namespace WebApplication.Controllers
         public ArrayList Select()
         {
             list = new ArrayList();
-
-            MySqlConnection conn = new MySqlConnection();
-            conn.ConnectionString = string.Format("server={0};user={1};password={2};database={3};port={4}", "gdc3.gudi.kr", "root", "1234", "test","21002");
-
-            try
+            DataBase DB = new DataBase();
+            MySqlConnection conn = DB.GetConnection();
+            if(conn != null)
             {
-                conn.Open();
-                Console.WriteLine("Open Success");
-                list.Add("Success");
+                string sql = "select * from Notice;";
+                MySqlDataReader sdr = DB.GetReader(sql);
+                while (sdr.Read())
+                {
+                    Hashtable ht = new Hashtable();
+                    string[] arr = new string[sdr.FieldCount];
+                    for(int i = 0; i<sdr.FieldCount; i++)
+                    {
+                        ht.Add(sdr.GetName(i), sdr.GetValue(i));
+                        arr[i] = sdr.GetValue(i).ToString();
+                    }
+                    list.Add(ht);
+                }
             }
-            catch 
+            else
             {
-                Console.WriteLine("Fail!!");
-                list.Add("Fail");
+                list.Add("디비접속 오류");
             }
             return list;
         }
